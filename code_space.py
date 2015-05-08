@@ -14,7 +14,7 @@ import re
 def get_encoding(module):
     """
     returns the encoding of the source-file of python module.
-    if it is not unsuccessful returns utf-8 (last chance! :)
+    if it is not successful returns utf-8 (last chance! :)
     """
     module_path = osp.abspath(module.__file__)
     oo = open(module_path, "rb")
@@ -77,8 +77,7 @@ class name_space():
     the objects contained in the code_list 
     are available without conflicting eachother.
     code_list is a list of names of importable pure 
-    python files (i.e., either python modules or a python
-    file on the path).
+    python files. 
     """
     def __init__(self, code_list):
         """

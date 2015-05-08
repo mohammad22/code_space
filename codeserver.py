@@ -35,8 +35,10 @@ class codeserver():
         if not (code in self.codelist):
             return "%s is not known in codelist!" % code
         else:
-            return eval(expr_string, self.codespace[code].__dict__)
-
+            try: 
+                return eval(expr_string, self.codespace[code].__dict__)
+            except:
+                return "Somthing wrong with your request!"
 
     def assert_equal(self, code, exp1, exp2):
         """
