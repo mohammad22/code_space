@@ -42,8 +42,8 @@ class codeserver():
 
     def assert_equal(self, code, exp1, exp2):
         """
-        Returns True if exp1 == exp2 within code space; otherwise returns
-        False
+        Returns True if exp1 == exp2 within code namespace; otherwise
+        returns False
         """
         return self.get_val(code, exp1) == self.get_val(code, exp2)
 
