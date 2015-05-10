@@ -42,9 +42,11 @@ class codeserver():
     def get_val(self, code, client, expr):
         """
         expr: should be a valid string expression
-        code: is the string name;  should be in self.codelist. 
-        expr gets evaluated within the code context as global and
+        code: is the string name;  should be in self.codelist; refers
+        to the global namesapce which expr will be evaluated against. 
+        expr gets evaluated withingt the code context as global and
         the locals of cleint namespace; the value gets returned
+        client: is a string name (should be in self.clients); 
         """
         if not (code in self.codelist):
             return "%s is not known in codelist!" % code
@@ -57,11 +59,11 @@ class codeserver():
                 return eval(expr, self.codespace[code].__dict__,\
                             self.clients_locals[client])
             except:
-                #try:
+                try:
                  exec(expr, self.codespace[code].__dict__,\
                             self.clients_locals[client])
-                #except:
-                    #return "Somthing's wrong!"
+                except:
+                    return "Somthing's wrong!"
 
     def assert_equal(self, code, exp1, exp2):
         """
