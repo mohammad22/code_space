@@ -46,7 +46,7 @@ class codeserver():
         to the global namesapce which expr will be evaluated against;
         (within the code context as global and the locals of cleint 
         namespace); 
-        the evaluated value gets returned. 
+        the evaluated value gets returned; If not sucessful returns None  
         client: is a string name (should be in self.clients); 
         """
         if not (code in self.codelist):
@@ -60,7 +60,7 @@ class codeserver():
                 return eval(expr, self.codespace[code].__dict__,\
                             self.clients_locals[client])
             except:
-                return "Somthing's wrong!"
+                return None 
 
 
     def assert_equal(self, code, exp1, exp2):
