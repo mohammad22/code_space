@@ -1,4 +1,7 @@
 import os.path as osp
+import re
+
+import_patt = re.compile(r"^.*import")
 
 def codespace(codepath):
     """ given a file path codepath, returns a dictionary codepath: dict,
@@ -42,16 +45,16 @@ class codeserver():
         self.codelist = {}
         self.clients = clients
         self.clients_locals = init_locals(self.clients)
-        self.clients_globals = init_locals(self.clients) 
+        self.clients_globals = {'client': {}} 
     
     def codespace(self, codeowner, path):
         """The main interface to self.code_space and self.clients_globals.
-        codeowner = 'global' if it is not a client.
+        codeowner = 'global' if it is not 'client'.
         """ 
         if path in self.pathlist:
             if codeowner == 'global':
                 return codepool(self.codelist, path)
-            elif codeowner in self.clients:
+            elif codeowner == 'client':
                 return codepool(self.clients_globals[codeowner], path)
             else:
                 print "%s is not valid!" % codeowner
@@ -59,6 +62,18 @@ class codeserver():
         else:
             print "%s is not valid!" % path
             return None
+
+    def pass_healthy_val(self, val, path, client):
+        try:
+            if self.codespace(client, path) ==\
+                    self.codespace('global', path):
+                return val
+            else:
+                del self.clients_globals[client][path]
+                self.codespace(client, path)
+                return "No access to global namespace!"
+        except:
+                return None
 
     def get_val(self, path, client, expr):
         """
@@ -73,23 +88,19 @@ class codeserver():
         if not (path in self.pathlist):
             return "%s is not known!" % path
         elif not (client in self.clients):
-            return "%s is not valid!" % client
-        #elif not pattern.match(expr) == None: 
-            #return "You can not use import."
+            return "%s is not valid client!" % client
         else:
             try:
-                val = eval(expr, self.codespace(client, path), 
+                val = eval(expr, self.codespace('client', path), 
                         self.clients_locals[client])
-                if self.codespace(client, path) ==\
-                        self.codespace('global', path):
-                    return val
-                else:
-                    del self.clients_globals[client][path]
-                    self.codespace(client, path)
-                    return None
+                return self.pass_healthy_val(val, path, 'client')
             except:
-                return None 
-
+                if not re.match(import_patt, expr):
+                    exec(expr, self.codespace('client', path), 
+                            self.clients_locals[client])
+                    return self.pass_healthy_val(None, path, 'client')
+                else:
+                    return "import not allowed!" 
 
     def assert_equal(self, code, exp1, exp2):
         """
