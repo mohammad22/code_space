@@ -6,14 +6,10 @@ def codespace(codepath):
     (dict: the dictionary of the executed code in codepath). 
     returns None if codepath is not valid.
     """
-    if osp.isfile(codepath) and osp.splitext(codepath)[1] == ".py":
-        dict = {}
-        f = open(codepath, "r")
-        exec(f) in dict
-        return dict
-    else:
-        print "%s should be a valid python path!\n" % codepath 
-        return None
+    dict = {}
+    f = open(codepath, "r")
+    exec(f) in dict
+    return dict
 
 def codepool(spacelist, path):
     try:
@@ -64,6 +60,29 @@ class codeserver():
         self.clients_locals = init_locals(self.clients)
         self.clients_globals = {'client': {}} 
     
+    def check_pathlist(self):
+        """
+        Checks the health of every path in the pathlist, and complains
+        if each one of them is not accessible. 
+        """
+        for i in range(len(self.pathlist) - 1):
+            path = self.pathlist[i]
+            if not( osp.isfile(path) and osp.splitext(path)[1] == ".py"):
+                print "%s is not valid. it is  deleted from the pathlist.
+                You can modify pathlist like any other python list at any
+                time.
+                \n" % path
+                del self.pathlist[i]
+    
+    def check_clients(self):
+        for i in range(len(self.clients)):
+            client = self.clients[i]
+            if not isinstance(clien, str): 
+                print "%s is not a valid string. it is delted from clients.
+                You can modify the clients list like any other python list
+                at any time." % client
+                del self.clients[i]
+
     def codespace(self, codeowner, path):
         """The main interface to self.code_space and self.clients_globals.
         codeowner = 'global' if it is not 'client'.
