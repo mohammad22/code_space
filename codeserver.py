@@ -1,7 +1,5 @@
 import os.path as osp
-import re
 
-import_patt = re.compile(r"^.*import")
 
 def codespace(codepath):
     """ given a file path codepath, returns a dictionary codepath: dict,
@@ -36,8 +34,27 @@ class codeserver():
     of python codefiles; They serve as the codespace.
     A codesserver, is able to evaluate strings of expressions within
     the namespace of each client (as local) and code module within the 
-    codelist (as global). This is achived using get_val method of the 
-    codeserver instance (see its documentation).
+    codelist (as global). 
+    two main attributes are self.pathlist, self.clients:
+    self.pathlist: a list of path of python files (accessible to the 
+    program) which serve as global namespace such that clients codes
+    will be evaluated against them.
+    self.clients: a list of unique strings representing each client 
+    (conisdered as client id).
+    The main method is get-val(self, path, client, expr)
+    it returns the value of the string expr, aagainst the global namesspace
+    of path (should be in self.pathlist) for the client (should be in
+    self.clients). This is a safe evaluation: it can not block the python
+    interpretor for more than one second; it can not touch the global 
+    namespace, so several clients have access to the same global namespace
+    at the same time without interfering. Restrictions: this only works 
+    for evaluation expression strings, so basically client codes can not 
+    define any new python object for itself; this means this is not useful
+    to evaluate clients codes which are arbitrary python codes. This is best
+    suited for reach codespace (already provided in pathlist) in which one
+    linear python codes should be evaluated against; like a test or 
+    excercise session for a class lab, and student reponses as clients 
+    codes 
     """
     
     def __init__(self, pathlist, clients):
@@ -78,12 +95,12 @@ class codeserver():
     def get_val(self, path, client, expr):
         """
         expr: should be a valid string expression 
-        code: is the string name;  should be in self.codelist; refers
+        path: is the string name;  should be in self.pathlist; refers
         to the global namesapce which expr will be evaluated against;
         (within the code context as global and the locals of client 
         namespace); 
         the evaluated value gets returned; If not sucessful returns None. 
-        client: is a string name (should be in self.clients); 
+        client: a string name (should be in self.clients); 
         """
         if not (path in self.pathlist):
             return "%s is not known!" % path
@@ -95,12 +112,7 @@ class codeserver():
                         self.clients_locals[client])
                 return self.pass_healthy_val(val, path, 'client')
             except:
-                if not re.match(import_patt, expr):
-                    exec(expr, self.codespace('client', path), 
-                            self.clients_locals[client])
-                    return self.pass_healthy_val(None, path, 'client')
-                else:
-                    return "import not allowed!" 
+                return "Unable to evaluate the code. try again!" 
 
     def assert_equal(self, code, exp1, exp2):
         """
