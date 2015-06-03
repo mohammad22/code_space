@@ -74,7 +74,7 @@ class codeserver():
                 del self.pathlist[i]
     
     def check_clients(self):
-        for i in range(len(self.clients)):
+        for i in range(len(self.clients) - 1):
             client = self.clients[i]
             if not isinstance(clien, str): 
                 print "%s is not a valid string. it is delted from clients.
