@@ -68,10 +68,9 @@ class codeserver():
         for i in range(len(self.pathlist) - 1):
             path = self.pathlist[i]
             if not( osp.isfile(path) and osp.splitext(path)[1] == ".py"):
-                print "%s is not valid. it is  deleted from the pathlist.
-                You can modify pathlist like any other python list at any
-                time.
-                \n" % path
+                print "%s is not valid. it is  deleted from the pathlist.\
+                        You can modify pathlist like any other python list\
+                        at any time.\ \n" % path
                 del self.pathlist[i]
     
     def check_clients(self):
