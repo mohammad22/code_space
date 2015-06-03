@@ -77,8 +77,8 @@ class codeserver():
         for i in range(len(self.clients) - 1):
             client = self.clients[i]
             if not isinstance(clien, str): 
-                print "%s is not a valid string. it is delted from clients.
-                You can modify the clients list like any other python list
+                print "%s is not a valid string. it is delted from clients.\
+                You can modify the clients list like any other python list\
                 at any time." % client
                 del self.clients[i]
 
