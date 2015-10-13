@@ -31,20 +31,21 @@ class codeserver():
     A codesserver, is able to evaluate strings of expressions within
     the namespace of each client (as local) and code module within the 
     codelist (as global). 
-    two main attributes are self.pathlist, self.clients:
-    self.pathlist: a list of path of python files (accessible to the 
+    two main attributes of a codeserver object are pathlist, clients:
+    pathlist: a list of path of python files (accessible to the 
     program) which serve as global namespace such that clients codes
     will be evaluated against them.
-    self.clients: a list of unique strings representing each client 
+    clients: a list of unique strings representing each client 
     (conisdered as client id).
-    The main method is get-val(self, path, client, expr)
-    it returns the value of the string expr, aagainst the global namesspace
-    of path (should be in self.pathlist) for the client (should be in
-    self.clients). This is a safe evaluation: it can not block the python
-    interpretor for more than one second; it can not touch the global 
+    The main method is get-val(path, client, expr)
+    it returns the value of the string expr, against the global namesspace
+    of path (should be in pathlist) for the client (should be in
+    clients). 
+    This is a safe evaluation in the sense that it can not touch the global 
     namespace, so several clients have access to the same global namespace
-    at the same time without interfering. Restrictions: this only works 
-    for evaluation expression strings, so basically client codes can not 
+    at the same time without interfering. 
+    Restrictions: this only works for evaluation expression strings, so
+    basically client codes can not 
     define any new python object for itself; this means this is not useful
     to evaluate clients codes which are arbitrary python codes. This is best
     suited for reach codespace (already provided in pathlist) in which one
@@ -67,7 +68,7 @@ class codeserver():
         """
         for i in range(len(self.pathlist)):
             path = self.pathlist[i]
-            if not( osp.isfile(path) and osp.splitext(path)[1] == ".py"):
+            if not(osp.isfile(path) and osp.splitext(path)[1] == ".py"):
                 print "%s is not valid. it is  deleted from the pathlist.\
                         You can modify pathlist like any other python list\
                         at any time. \n" % path
@@ -77,7 +78,8 @@ class codeserver():
         for i in range(len(self.clients)):
             client = self.clients[i]
             if not isinstance(clien, str): 
-                print "%s is not a valid string. it is delted from clients.\
+                print "%s is not a valid string. it is deleted from 
+                clients.\
                 You can modify the clients list like any other python list\
                 at any time." % client
                 del self.clients[i]
