@@ -3,6 +3,26 @@
 import traceback as tb
 import re
 
+
+colon = re.compile(r'^.*[:]\r*\n+')
+pure_line = re.compile(r'^ *\n+$')
+
+def ends_with(string, character):
+    
+    patt = ''.join([u'^.*[', character, u']\r*\n+'])
+    if character == u':':
+        pattern = colon
+    if character == u'\n':
+        pattern = pure_line
+    else:    
+        pattern = re.compile(patt)
+
+    if len(re.findall(pattern, string)) >= 1:
+        return True
+    else:
+        return False
+
+
 class repl(object):
 
     def __init__(self, user, session, buffer = [], encoding = 'utf-8'):
@@ -16,7 +36,7 @@ class repl(object):
     
     def send(self, statement):
         """
-        user sends statements and gets the result of execution
+        sends statements and gets the result of execution
         or evaluation of the statement in response.
         
         """
@@ -50,25 +70,6 @@ class repl(object):
             finally:    
                 self.buffer = []
                 self.blank_line = 0
-
-import re
-colon = re.compile(r'^.*[:]\r*\n+')
-pure_line = re.compile(r'^ *\n+$')
-
-def ends_with(string, character):
-    
-    patt = ''.join([u'^.*[', character, u']\r*\n+'])
-    if character == u':':
-        pattern = colon
-    if character == u'\n':
-        pattern = pure_line
-    else:    
-        pattern = re.compile(patt)
-
-    if len(re.findall(pattern, string)) >= 1:
-        return True
-    else:
-        return False
 
 
     
