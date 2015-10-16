@@ -2,6 +2,8 @@
 
 import traceback as tb
 import re
+from commandio import IO
+
 
 
 colon = re.compile(r'^.*[:]\r*\n+')
@@ -25,51 +27,67 @@ def ends_with(string, character):
 
 class repl(object):
 
-    def __init__(self, user, session, buffer = [], encoding = 'utf-8'):
+    def __init__(self, user, session, bufer = [], encoding = 'utf-8'):
         self.user = user
         self.session = session
-        self.buffer = buffer
+        self.bufer = bufer
         self.blank_line = 0
         self.encoding = encoding
-        self.globals = {}
-        self.locals = {}
-    
+        self.glob = {}
+        self.evaluation = True
+        self.fille = "temp.txt" #this should be construced in a thread-safe
+                                # manner
+
+
+
     def send(self, statement):
         """
-        sends statements and gets the result of execution
-        or evaluation of the statement in response.
-        
+        sends statements and retunrs the result of execution
+        or evaluation of the statement in byte string encoded 
+        with self.encoding. 
+        every statement should be in unicode, and should be ended with "\n".
+        all the statements are executed or evaluated (whichever is 
+        applicable for the statement) within the global environment of the
+        user (self.glob).
+        This method immulates the behaviour of the standard python repl.
+        For example sending u'def f():' returns '...', it does not evaluate
+        or execute the statement and waits for the whole block of function 
+        definition to be completed. At the end of completion of function
+        defition the whole body of function will be executed within the 
+        global environment of the user (similar to repl), and the function
+        will be available for later calls.
         """
-        self.buffer.append(statement)
+        if not statement.endswith(u'\n'):
+            statement = statement + u'\n'
+
+        self.bufer.append(statement)
         
-        if ends_with(statement, u'\n'): ## this actually checks for statement been a blank line.
+        if ends_with(statement, u'\n'): ## despite its name, this actually checks for statement to  be a blank line.
             self.blank_line += 1
 
         if ends_with(statement, u':'):
             return u'...'.encode(self.encoding)
-        elif len(self.buffer) > 1:
+        elif len(self.bufer) > 1:
+            self.evaluation = False
             if self.blank_line == 1:
-                statement = ''.join(self.buffer)
-                try:
-                    exec(statement, self.globals, self.locals)
-                    ## we should get return value (if any) to the user....
-                except:
-                    ## get traceback error and pass it to user
-                    pass
-                finally:
-                    self.buffer = []
-                    self.blank_line = 0
+                statement = u''.join(self.bufer)
+                self.bufer = []
+                self.blank_line = 0
+                io = IO(statement, self.fille, self.glob)
+                if io == u'':
+                    return u'>>>'.encode(self.encoding)
+                else:
+                    return io.encode(self.encoding)
             else:
                 return u'...'.encode(self.encoding)
         else:
-            try:
-                exec(statement, self.globals, self.locals)
-            except:
-                ## get traceback erro and pass it to user
-                pass
-            finally:    
-                self.buffer = []
-                self.blank_line = 0
+            self.bufer = []
+            self.blank_line = 0
+            io = IO(statement, self.fille, self.glob, self.evaluation)
+            if io == u'':
+                return u'>>>'.encode(self.encoding)
+            else:
+                return io.encode(self.encoding)
 
 
     
