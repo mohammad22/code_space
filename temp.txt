@@ -1,1 +1,2 @@
-9
+Traceback (most recent call last):
+NameError: global name 'dummy' is not defined
