@@ -92,10 +92,6 @@ def IO(command, path, glob = {}, evaluation = True):
     return data
 
 
-
-
-
-
 class repl(object):
     """
     these attributes keeps the state of repl for user at basically three
@@ -111,7 +107,6 @@ class repl(object):
     glob, codepath
 
     """
-
     def __init__(self, user, session, bufer = [], encoding = 'utf-8', codepath = None):
         self.user = user
         self.session = session
