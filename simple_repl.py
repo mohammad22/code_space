@@ -6,6 +6,7 @@ import os
 import sys
 from contextlib import contextmanager
 import traceback
+from tempfile import NamedTemporaryFile
 
 
 colon = re.compile(r'^.*[:]\r*\n+')
@@ -107,52 +108,60 @@ class repl(object):
     bufer, blank_line, evaluation, fille
 
     level 3: repl interaction with python interpreter
-    glob
+    glob, codepath
 
     """
 
-    def __init__(self, user, session, bufer = [], encoding = 'utf-8'):
+    def __init__(self, user, session, bufer = [], encoding = 'utf-8', codepath = None):
         self.user = user
         self.session = session
         self.bufer = bufer
         self.blank_line = 0
-        self.evaluation = True
-        self.fille = "temp.txt" #this should be construced in a thread-safe
-        self.glob = {}
+        self.evaluation = True #An internal variable to keep track if the current buffer, to be executed, should be eval-ed or exec-ed
+        fille = NamedTemporaryFile(mode = 'w+t', delete = False)
         self.encoding = encoding
-                                # manner
+        self.fille = fille.name 
+        self.glob = {}
+        self.codepath = codepath
+        if self.codepath != None: 
+            if os.path.exists(self.codepath) and self.codepath.endswith(".py"):
+                f = open(codepath, "r")
+                exec(f) in self.glob
+                self.send(u'\n')
+                f.close()    
+            else: 
+                raise IOError("the codepath is not a valid python file")    
+    
+    def __del__(self):
+        os.remove(self.fille)
 
     def _reset_after_flush_bufer(self):
         """
-        As it says, resets the state varibales to the initial values
+        Resets the state varibales to the initial values
         after flushing the bufer statements
         """
         self.bufer = []
         self.blank_line = 0
         self.evaluation = True
 
-
-
     def send(self, statement):
         """
-        sends statements and retunrs the result of execution
-        or evaluation of the statement in byte string encoded 
-        with self.encoding. 
+        returns the result of execution or evaluation of the statement in
+        byte string encoded with self.encoding. 
         every statement should be in unicode, and should be ended with "\n".
         all the statements are executed or evaluated (whichever is 
         applicable for the statement) within the global environment of the
         user (self.glob).
-        This method immulates the behaviour of the standard python repl.
+        It immulates the behaviour of the standard python repl.
         For example sending u'def f():' returns '...', it does not evaluate
         or execute the statement and waits for the whole block of function 
         definition to be completed. At the end of completion of function
         defition the whole body of function will be executed within the 
-        global environment of the user (similar to repl), and the function
-        will be available for later calls.
+        global environment of the user. 
         """
         if not statement.endswith(u'\n'):
-            statement = statement + u'\n'
-        
+            statement += u'\n'
+
         if ends_with(statement, u'\n'): ## despite its name, this actually checks for statement to  be a blank line.
             self.blank_line += 1
 
@@ -166,6 +175,7 @@ class repl(object):
             if self.blank_line == 1:
                 statement = u''.join(self.bufer)
                 self._reset_after_flush_bufer()
+                statement += u'\n'
                 io = IO(statement, self.fille, self.glob)
                 if io == u'':
                     return u'>>> '.encode(self.encoding)
@@ -176,6 +186,7 @@ class repl(object):
         else:
             statement = u''.join(self.bufer)
             self._reset_after_flush_bufer()
+            statement += u'\n'
             io = IO(statement, self.fille, self.glob, self.evaluation)
             if io == u'':
                 return u'>>> '.encode(self.encoding)
