@@ -57,39 +57,6 @@ def stdout_redirected(to=os.devnull, stdout=None):
             os.dup2(copied.fileno(), stdout_fd)  # $ exec >&copied
 
 
-def IO(command, path, glob = {}, evaluation = True):
-    
-    if evaluation:
-        try: 
-            with open(path, 'w') as f, stdout_redirected(f):
-                if command.startswith(u'print') or \
-                        (ends_with(command,  u')') and 
-                                not command.startswith(u'(')):
-                    exec(command, glob, None)
-                else:
-                    exec(u''.join([u'print ', command]), glob, None)
-        except SyntaxError:
-            try: 
-                with open(path, 'w') as f, stdout_redirected(f):
-                    exec(command, glob, None)
-            except:
-                with open(path, 'w') as f, stdout_redirected(f):
-                    traceback.print_exc(limit=0, file = f)
-        except:
-            with open(path, 'w') as f, stdout_redirected(f):
-                traceback.print_exc(limit=0, file = f)
-    else: 
-        try: 
-            with open(path, 'w') as f, stdout_redirected(f):
-                exec(command, glob, None)
-        except:
-            with open(path, 'w') as f, stdout_redirected(f):
-                traceback.print_exc(limit=0, file = f)
-
-    with open(path, 'r') as f:
-        data = f.read()
-    
-    return data
 
 
 class repl(object):
@@ -171,7 +138,7 @@ class repl(object):
                 statement = u''.join(self.bufer)
                 self._reset_after_flush_bufer()
                 statement += u'\n'
-                io = IO(statement, self.fille, self.glob)
+                io = self.IO(statement)
                 if io == u'':
                     return u'>>> '.encode(self.encoding)
                 else:
@@ -182,11 +149,43 @@ class repl(object):
             statement = u''.join(self.bufer)
             self._reset_after_flush_bufer()
             statement += u'\n'
-            io = IO(statement, self.fille, self.glob, self.evaluation)
+            io = self.IO(statement)
             if io == u'':
                 return u'>>> '.encode(self.encoding)
             else:
                 return u''.join([io, u'>>> ']).encode(self.encoding)
 
+    def IO(self, command):
+        if self.evaluation:
+            try: 
+                with open(self.fille, 'w') as f, stdout_redirected(f):
+                    if command.startswith(u'print') or \
+                            (ends_with(command,  u')') and 
+                                    not command.startswith(u'(')):
+                        exec(command, self.glob, None)
+                    else:
+                        exec(u''.join([u'print ', command]), self.glob, None)
+            except SyntaxError:
+                try: 
+                    with open(self.fille, 'w') as f, stdout_redirected(f):
+                        exec(command, self.glob, None)
+                except:
+                    with open(self.fille, 'w') as f, stdout_redirected(f):
+                        traceback.print_exc(limit=0, file = f)
+            except:
+                with open(self.fille, 'w') as f, stdout_redirected(f):
+                    traceback.print_exc(limit=0, file = f)
+        else: 
+            try: 
+                with open(self.fille, 'w') as f, stdout_redirected(f):
+                    exec(command, glob, None)
+            except:
+                with open(self.fille, 'w') as f, stdout_redirected(f):
+                    traceback.print_exc(limit=0, file = f)
+
+        with open(self.fille, 'r') as f:
+            data = f.read()
+        
+        return data
 
     
