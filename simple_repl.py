@@ -5,7 +5,6 @@ import re
 import os
 import sys
 from contextlib import contextmanager
-import traceback
 from tempfile import NamedTemporaryFile
 
 
@@ -63,19 +62,16 @@ class repl(object):
     """
     these attributes keeps the state of repl for user at basically three
     different levels:
-    
-    level 1: user information
-    user, session, encoding
-
-    level 2: repl interaction state with user
-    bufer, blank_line, evaluation, fille
-
-    level 3: repl interaction with python interpreter
-    glob, codepath
-
+        level 1: user information
+            user, group, session, encoding
+        level 2: repl interaction state with user
+            bufer, blank_line, evaluation, fille
+        level 3: repl interaction with python interpreter
+            glob, codepath
     """
-    def __init__(self, user, session, bufer = [], encoding = 'utf-8', codepath = None):
+    def __init__(self, user, session, group = "Guest", bufer = [], encoding = 'utf-8', codepath = None):
         self.user = user
+        self.group = group
         self.session = session
         self.bufer = bufer
         self.blank_line = 0
@@ -119,7 +115,9 @@ class repl(object):
         or execute the statement and waits for the whole block of function 
         definition to be completed. At the end of completion of function
         defition the whole body of function will be executed within the 
-        global environment of the user. 
+        global environment of the user. On the other hand, this is different
+        from repl as you can send multiple lines into it to be executed in
+        python, the end-python return will be returned to you.
         """
         if not statement.endswith(u'\n'):
             statement += u'\n'
@@ -156,6 +154,10 @@ class repl(object):
                 return u''.join([io, u'>>> ']).encode(self.encoding)
 
     def IO(self, command):
+        """
+        Executes command in the self.glob, meanwhile redirects python 
+        interpretor stdout into self.fille. 
+        """
         if self.evaluation:
             try: 
                 with open(self.fille, 'w') as f, stdout_redirected(f):
@@ -171,17 +173,17 @@ class repl(object):
                         exec(command, self.glob, None)
                 except:
                     with open(self.fille, 'w') as f, stdout_redirected(f):
-                        traceback.print_exc(limit=0, file = f)
+                        tb.print_exc(limit=0, file = f)
             except:
                 with open(self.fille, 'w') as f, stdout_redirected(f):
-                    traceback.print_exc(limit=0, file = f)
+                    tb.print_exc(limit=0, file = f)
         else: 
             try: 
                 with open(self.fille, 'w') as f, stdout_redirected(f):
                     exec(command, glob, None)
             except:
                 with open(self.fille, 'w') as f, stdout_redirected(f):
-                    traceback.print_exc(limit=0, file = f)
+                    tb.print_exc(limit=0, file = f)
 
         with open(self.fille, 'r') as f:
             data = f.read()
